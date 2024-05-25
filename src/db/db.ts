@@ -4,7 +4,7 @@ import { BlogMongoDbType} from "../types/blogs/output";
 
 import { PostMongoDbType} from "../types/posts/output";
 import {Collection, MongoClient} from "mongodb";
-import {UserMongoDbType} from "../types/users/inputUsersType";
+import {UserAccountDBType, UserMongoDbType} from "../types/users/inputUsersType";
 import {CommentMongoDbType} from "../types/comment/output-comment-type";
 
 //пытаюсь подключить бд
@@ -19,7 +19,7 @@ export const blogCollection: Collection<BlogMongoDbType> = mongoDb.collection<Bl
 export const postCollection: Collection<PostMongoDbType> = mongoDb.collection<PostMongoDbType>('post')
 export const commentCollection: Collection<CommentMongoDbType> = mongoDb.collection<CommentMongoDbType>('comment')
 
-export const usersCollection: Collection<UserMongoDbType> = mongoDb.collection<UserMongoDbType>("user")
+export const usersCollection: Collection<UserAccountDBType> = mongoDb.collection<UserAccountDBType>("user")
 export async  function connectMongo (){
     try{
         await client.connect()

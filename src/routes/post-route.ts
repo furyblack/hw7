@@ -79,7 +79,7 @@ postRoute.post("/:postId/comments", authMiddlewareBearer, commentForPostValidati
     const postId=req.params.postId;
     const content= req.body.content;
     const userId=req.userDto._id.toString();
-    const userLogin=req.userDto.userName;
+    const userLogin=req.userDto.accountData.userName;
 
     const createResult =  await CommentService.createComment({content, postId,userId,userLogin })
     //если поста нет то 404

@@ -2,17 +2,17 @@ import { PaginationOutputType} from "../types/blogs/output";
 import { usersCollection} from "../db/db";
 import {ObjectId, SortDirection, WithId} from "mongodb";
 import {UserOutputType, userSortData} from "../types/users/outputUserType";
-import {UserMongoDbType} from "../types/users/inputUsersType";
+import {UserAccountDBType, UserMongoDbType} from "../types/users/inputUsersType";
 import {strict} from "node:assert";
 
 
 export class UserMapper {
-    static toDto(user: WithId<UserMongoDbType>): UserOutputType {
+    static toDto(user: WithId<UserAccountDBType>): UserOutputType {
         return {
             id: user._id.toString(),
-            login: user.userName,
-            email: user.email,
-            createdAt: user.createdAt.toISOString()
+            login: user.accountData.userName,
+            email: user.accountData.email,
+            createdAt: user.accountData.createdAt.toISOString()
 
         }
     }

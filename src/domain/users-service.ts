@@ -1,41 +1,55 @@
 import bcrypt from 'bcrypt';
-import {CurrentUserType, UserOutputType} from "../types/users/outputUserType";
+import {UserOutputType} from "../types/users/outputUserType";
 import {UsersRepository} from "../repositories/users-repository";
-import { UserMongoDbType} from "../types/users/inputUsersType";
 import {WithId} from "mongodb";
+import {UserFactory} from "../types/users/User";
+import {UserAccountDBType} from "../types/users/inputUsersType";
+import {nodemailerService} from "./nodemailer-service";
 
 
 export const UsersService = {
-    async createUser(login: string, email:string, password:string): Promise<UserOutputType>{
-        const passwordSalt = await bcrypt.genSalt(10)
-        const passwordHash = await this._generateHash(password, passwordSalt)
+    async createUser(login: string, email:string, password:string): Promise<UserOutputType | null>{
 
-        const newUser: UserMongoDbType = {
+        const newUser = await UserFactory
+            .createConfirmedUser({login, password, email})
 
-            userName: login,
-            email,
-            passwordHash,
-            passwordSalt,
-            createdAt: new Date()
+        await UsersRepository.createUser(newUser)
+        return UserFactory.getViewModel(newUser)
+
+    },
+    async createUnconfirmedUser(login: string, email: string, password: string): Promise<boolean | null> {
+        const newUser = await UserFactory.createUnonfirmedUser({ login, password, email });
+        try {
+            await nodemailerService.sendEmail(
+                newUser.accountData.email,
+                "Registration confirmation",
+                `To finish registration please follow the link below:\nhttps://some-front.com/confirm-registration?code=${newUser.emailConfirmation.confirmationCode}`)
+        } catch (e) {
+            console.log(e)
+            return null
         }
-       const userId = await UsersRepository.createUser(newUser)
-        return {
-            login: newUser.userName,
-            email: newUser.email,
-            createdAt: newUser.createdAt.toISOString(),
-            id: userId.toString()
+        await UsersRepository.createUser(newUser);
+        return true
+    },
+    async confirmEmail(code: string): Promise<boolean> {
+        let user = await UsersRepository.findUserByConfirmationCode(code);
+        if (!user || !user.emailConfirmation.expirationDate) return false
 
+        if (user.emailConfirmation.confirmationCode === code && user.emailConfirmation.expirationDate > new Date()) {
+            let result = await UsersRepository.updateConfirmation(user._id);
+            return result;
         }
+        return false;
     },
     async _generateHash(password: string, salt: string){
         const hash = await bcrypt.hash(password, salt)
         return hash
     },
     async checkCredentials(loginOrEmail: string, password: string){
-        const user:WithId<UserMongoDbType> | null = await UsersRepository.findByLoginOrEmail(loginOrEmail)
+        const user:WithId<UserAccountDBType> | null = await UsersRepository.findByLoginOrEmail(loginOrEmail)
         if(!user) return null
-        const passwordHash = await this._generateHash(password, user.passwordSalt)
-        if(user.passwordHash !== passwordHash){
+        const passwordHash = await this._generateHash(password, user.accountData.passwordSalt)
+        if(user.accountData.passwordHash !== passwordHash){
            return  null
         }
         return user
@@ -44,9 +58,8 @@ export const UsersService = {
     async deleteUser(id: string):Promise<boolean>{
         return await UsersRepository.deleteUser(id)
     },
-    //  async getCurrentUser(userId: string): Promise<CurrentUserType | null> {
-    //     return await UsersRepository.findUserById(userId);
-    // }
-
+    async findUserByEmail(email: string) {
+        return await UsersRepository.findByEmail(email);
+    },
 
 }

@@ -4,7 +4,7 @@ import {RequestWithBody, RequestWithQuery} from "../types/common";
 import {CreateNewUserType, userQuerySortData} from "../types/users/inputUsersType";
 import {UserOutputType} from "../types/users/outputUserType";
 import {PaginationOutputType} from "../types/blogs/output";
-import {paginator, userPaginator} from "../types/paginator/pagination";
+import {userPaginator} from "../types/paginator/pagination";
 import {UserQueryRepository} from "../repositories/query-user-repository";
 import {authMiddleware} from "../middlewares/auth/auth-middleware";
 import {userValidation} from "../validators/user-validators";
@@ -20,8 +20,9 @@ usersRouter.get('/',  async (req: RequestWithQuery<userQuerySortData>, res: Resp
 
 
 usersRouter.post('/', authMiddleware, userValidation(), async (req: RequestWithBody<CreateNewUserType>, res: Response)=> {
-    const newCreatedUser: UserOutputType = await UsersService.createUser(req.body.login, req.body.email, req.body.password)
-    res.status(201).send(newCreatedUser)
+    const newCreatedUser: UserOutputType | null = await UsersService.createUser(req.body.login, req.body.email, req.body.password)
+    if(!newCreatedUser) return res.sendStatus(600)
+    return  res.status(201).send(newCreatedUser)
 })
 
 usersRouter.delete('/:id', authMiddleware, async (req: Request, res:Response) =>{
