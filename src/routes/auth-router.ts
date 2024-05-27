@@ -6,8 +6,8 @@ import { jwtService } from "../application/jwt-service";
 import { WithId } from "mongodb";
 import { CurrentUserType } from "../types/users/outputUserType";
 import {authMiddlewareBearer, checkUniqueEmailAndLogin} from "../middlewares/auth/auth-middleware";
-import {nodemailerService} from "../domain/nodemailer-service";
-import {userValidation} from "../validators/user-validators";
+
+
 
 
 export const authRouter = Router({});
@@ -54,21 +54,22 @@ authRouter.post('/registration-confirmation',  async (req: Request, res: Respons
 
 authRouter.post('/registration-email-resending', async (req: Request, res: Response) => {
     const email = req.body.email;
-    const user = await UsersService.findUserByEmail(email);
-    if (!user || user.emailConfirmation.isConfirmed) {
-        res.status(400).send({ message: 'Invalid email or email already confirmed' });
-        return;
+
+    if (!email) {
+        return res.status(400).send({ message: 'Email is required' });
     }
+
     try {
-        await nodemailerService.sendEmail(
-            //TODO 1 сгенерировать новый код для повторной отправки   2) сохранить новый код в БД 3) отправить новый код  все это перенести в сервис
-            user.accountData.email,
-            "Registration confirmation",
-            `To finish registration please follow the link below:\nhttps://some-front.com/confirm-registration?code=${user.emailConfirmation.confirmationCode}`
-        );
+        await UsersService.resendConfirmationEmail(email);
         res.status(204).send();
-    } catch (e) {
-        console.error('Send email error', e);
-        res.status(500).send({ message: 'Could not resend confirmation email' });
-    }
+    } catch (error) {
+        const err = error as any;
+        if (err.message === 'Invalid email or email already confirmed') {
+            res.status(400).send({ message: err.message });
+        } else {
+            console.error('Send email error', err);
+            res.status(500).send({ message: 'Could not resend confirmation email' });
+        }
+    }return
 });
+

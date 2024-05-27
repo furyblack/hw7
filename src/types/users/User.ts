@@ -64,7 +64,7 @@ export class UserFactory {
             expirationDate: null
         })
     }
-    public static async createUnonfirmedUser({login, password, email} : CreateNewUserType) {
+    public static async createUnconfirmedUser({login, password, email} : CreateNewUserType) {
         return this.create({
             login,
             email,

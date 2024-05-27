@@ -1,5 +1,5 @@
 import {usersCollection} from "../db/db";
-import {UserAccountDBType, UserMongoDbType} from "../types/users/inputUsersType";
+import {UserAccountDBType} from "../types/users/inputUsersType";
 import {ObjectId, WithId} from "mongodb";
 
 export class UsersRepository{
@@ -43,5 +43,16 @@ export class UsersRepository{
     static async updateConfirmation(_id: ObjectId) {
         let result = await usersCollection.updateOne({ _id }, { $set: { 'emailConfirmation.isConfirmed': true } });
         return result.modifiedCount === 1;
+    }
+    static async updateConfirmationCode(userId: ObjectId, newCode: string, newExpirationDate: Date) {
+        await usersCollection.updateOne(
+            { _id: userId },
+            {
+                $set: {
+                    'emailConfirmation.confirmationCode': newCode,
+                    'emailConfirmation.expirationDate': newExpirationDate
+                }
+            }
+        );
     }
 }

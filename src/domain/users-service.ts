@@ -5,6 +5,8 @@ import {WithId} from "mongodb";
 import {UserFactory} from "../types/users/User";
 import {UserAccountDBType} from "../types/users/inputUsersType";
 import {nodemailerService} from "./nodemailer-service";
+import {v4 as uuidv4} from "uuid";
+import { add } from 'date-fns';
 
 
 export const UsersService = {
@@ -17,8 +19,9 @@ export const UsersService = {
         return UserFactory.getViewModel(newUser)
 
     },
+
     async createUnconfirmedUser(login: string, email: string, password: string): Promise<boolean | null> {
-        const newUser = await UserFactory.createUnonfirmedUser({ login, password, email });
+        const newUser = await UserFactory.createUnconfirmedUser({ login, password, email });
         try {
             await nodemailerService.sendEmail(
                 newUser.accountData.email,
@@ -61,5 +64,21 @@ export const UsersService = {
     async findUserByEmail(email: string) {
         return await UsersRepository.findByEmail(email);
     },
+    async resendConfirmationEmail(email: string): Promise<void> {
+        const user = await this.findUserByEmail(email);
+        if (!user || user.emailConfirmation.isConfirmed) {
+            throw new Error('Invalid email or email already confirmed');
+        }
 
+        const newCode = uuidv4();
+        const newExpirationDate = add(new Date(), { minutes: 30 });
+
+        await UsersRepository.updateConfirmationCode(user._id, newCode, newExpirationDate);
+
+        await nodemailerService.sendEmail(
+            user.accountData.email,
+            "Registration confirmation",
+            `To finish registration please follow the link below:\nhttps://some-front.com/confirm-registration?code=${newCode}`
+        );
+    }
 }
