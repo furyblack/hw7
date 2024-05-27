@@ -1,6 +1,7 @@
 import {NextFunction, Response, Request} from 'express';
 import {jwtService} from "../../application/jwt-service";
 import {UsersRepository} from "../../repositories/users-repository";
+import {usersCollection} from "../../db/db";
 
 
 
@@ -32,4 +33,33 @@ export const authMiddlewareBearer = async (req:Request,res:Response,next:NextFun
     res.sendStatus(401)
     return
 }
+
+
+export const checkUniqueEmailAndLogin = async (req: Request, res: Response, next: NextFunction) => {
+    const { email, login } = req.body;
+
+    // Проверяем, переданы ли email и login
+    if (!email || !login) {
+        res.status(400).send({ message: 'Email and login are required' });
+        return;
+    }
+
+    try {
+        // Ищем пользователя с указанным email или login
+        const existingUser = await usersCollection.findOne({
+            $or: [{ 'accountData.email': email }, { 'accountData.userName': login }]
+        });
+
+        if (existingUser) {
+            res.status(400).send({ message: 'Email or login already exists' });
+            return;
+        }
+
+        next(); // Продолжаем выполнение следующего middleware или обработчика маршрута
+    } catch (error) {
+        console.error('Error checking uniqueness', error);
+        res.status(500).send({ message: 'Internal server error' });
+        return;
+    }
+};
 

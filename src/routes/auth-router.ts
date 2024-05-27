@@ -5,8 +5,9 @@ import {LoginUserType, UserAccountDBType} from "../types/users/inputUsersType";
 import { jwtService } from "../application/jwt-service";
 import { WithId } from "mongodb";
 import { CurrentUserType } from "../types/users/outputUserType";
-import { authMiddlewareBearer } from "../middlewares/auth/auth-middleware";
+import {authMiddlewareBearer, checkUniqueEmailAndLogin} from "../middlewares/auth/auth-middleware";
 import {nodemailerService} from "../domain/nodemailer-service";
+import {userValidation} from "../validators/user-validators";
 
 
 export const authRouter = Router({});
@@ -31,7 +32,8 @@ authRouter.get('/me', authMiddlewareBearer, async (req: Request, res: Response<C
 });
 
 //TODO   Сделать валидатор на проверку уникальности email login
-authRouter.post('/registration', async (req: Request, res: Response) => {
+authRouter.post('/registration', checkUniqueEmailAndLogin,  async (req: Request, res: Response) => {
+    //TODO перенести в auth service
     const result = await UsersService.createUnconfirmedUser(req.body.login, req.body.email, req.body.password);
     if(!result){
         res.sendStatus(500)
@@ -40,7 +42,7 @@ authRouter.post('/registration', async (req: Request, res: Response) => {
     res.sendStatus(204)
 });
 //TODO добавить валидацию на код и убрать ее из роута
-authRouter.post('/registration-confirmation', async (req: Request, res: Response) => {
+authRouter.post('/registration-confirmation',  async (req: Request, res: Response) => {
     const result = await UsersService.confirmEmail(req.body.code);
     if (!result) {
         res.status(400).send({errorsMessages: [{ message: 'пользователь уже подтвержден', field: "code" }]});
@@ -59,6 +61,7 @@ authRouter.post('/registration-email-resending', async (req: Request, res: Respo
     }
     try {
         await nodemailerService.sendEmail(
+            //TODO 1 сгенерировать новый код для повторной отправки   2) сохранить новый код в БД 3) отправить новый код  все это перенести в сервис
             user.accountData.email,
             "Registration confirmation",
             `To finish registration please follow the link below:\nhttps://some-front.com/confirm-registration?code=${user.emailConfirmation.confirmationCode}`
