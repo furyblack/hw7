@@ -31,7 +31,7 @@ authRouter.get('/me', authMiddlewareBearer, async (req: Request, res: Response<C
     });
 });
 
-//TODO   Сделать валидатор на проверку уникальности email login
+
 authRouter.post('/registration', checkUniqueEmailAndLogin,  async (req: Request, res: Response) => {
     //TODO перенести в auth service
     const result = await UsersService.createUnconfirmedUser(req.body.login, req.body.email, req.body.password);

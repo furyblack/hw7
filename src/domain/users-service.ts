@@ -9,7 +9,7 @@ import {v4 as uuidv4} from "uuid";
 import { add } from 'date-fns';
 
 
-export const UsersService = {
+export const    UsersService = {
     async createUser(login: string, email:string, password:string): Promise<UserOutputType | null>{
 
         const newUser = await UserFactory
