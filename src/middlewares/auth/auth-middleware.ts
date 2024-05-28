@@ -5,8 +5,6 @@ import {usersCollection} from "../../db/db";
 import {body} from "express-validator";
 import {inputValidationMiddleware} from "../inputValidation/input-validation-middleware";
 
-const login1 = 'admin'
-const password1 = 'qwerty'
 
 export const authMiddleware = async (req: Request, res: Response, next: NextFunction) =>{
     if (req.headers['authorization']!== 'Basic YWRtaW46cXdlcnR5'){
@@ -33,7 +31,7 @@ export const authMiddlewareBearer = async (req:Request,res:Response,next:NextFun
 }
 
 export const uniqEmailValidator = body("email")
-    .matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/)
+    .matches(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)
     .withMessage('Email is not valid')
     .custom(async (email) => {
     const existingUser = await usersCollection.findOne({'accountData.email': email})
@@ -65,7 +63,7 @@ export const uniqLoginValidator = body("login")
 
 export const userConfiemedValidor = body("email")
     .isString()
-    .matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage('Email is not Valid')
+    .matches(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage('Email is not Valid')
     .custom(async (email) => {
     const user = await usersCollection.findOne({'accountData.email': email})
 
