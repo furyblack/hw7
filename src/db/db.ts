@@ -20,6 +20,8 @@ export const postCollection: Collection<PostMongoDbType> = mongoDb.collection<Po
 export const commentCollection: Collection<CommentMongoDbType> = mongoDb.collection<CommentMongoDbType>('comment')
 
 export const usersCollection: Collection<UserAccountDBType> = mongoDb.collection<UserAccountDBType>("user")
+
+
 export async  function connectMongo (){
     try{
         await client.connect()

@@ -49,7 +49,9 @@ export const    UsersService = {
         return hash
     },
     async checkCredentials(loginOrEmail: string, password: string){
+        console.log(loginOrEmail, "llll")
         const user:WithId<UserAccountDBType> | null = await UsersRepository.findByLoginOrEmail(loginOrEmail)
+        console.log(user, '444444444444')
         if(!user) return null
         const passwordHash = await this._generateHash(password, user.accountData.passwordSalt)
         if(user.accountData.passwordHash !== passwordHash){
@@ -66,17 +68,15 @@ export const    UsersService = {
     },
     async resendConfirmationEmail(email: string): Promise<void> {
         const user = await this.findUserByEmail(email);
-        if (!user || user.emailConfirmation.isConfirmed) {
-            throw new Error('Invalid email or email already confirmed');
-        }
+
 
         const newCode = uuidv4();
         const newExpirationDate = add(new Date(), { minutes: 30 });
 
-        await UsersRepository.updateConfirmationCode(user._id, newCode, newExpirationDate);
+        await UsersRepository.updateConfirmationCode(user!._id, newCode, newExpirationDate);
 
         await nodemailerService.sendEmail(
-            user.accountData.email,
+            user!.accountData.email,
             "Registration confirmation",
             `To finish registration please follow the link below:\nhttps://some-front.com/confirm-registration?code=${newCode}`
         );

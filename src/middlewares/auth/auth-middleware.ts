@@ -2,6 +2,8 @@ import {NextFunction, Response, Request} from 'express';
 import {jwtService} from "../../application/jwt-service";
 import {UsersRepository} from "../../repositories/users-repository";
 import {usersCollection} from "../../db/db";
+import {body} from "express-validator";
+import {inputValidationMiddleware} from "../inputValidation/input-validation-middleware";
 
 
 
@@ -35,31 +37,41 @@ export const authMiddlewareBearer = async (req:Request,res:Response,next:NextFun
 }
 
 
-export const checkUniqueEmailAndLogin = async (req: Request, res: Response, next: NextFunction) => {
-    const { email, login } = req.body;
 
-    // Проверяем, переданы ли email и login
-    if (!email || !login) {
-        res.status(400).send({ message: 'Email and login are required' });
-        return;
+
+export const uniqEmailValidator = body("email").custom(async (email) => {
+    console.log(email)
+    const existingUser = await usersCollection.findOne({'accountData.email': email})
+    console.log(existingUser)
+    if (existingUser) {
+        throw new Error("пользователь с таким email существует");
     }
+    return true
+});
 
-    try {
-        // Ищем пользователя с указанным email или login
-        const existingUser = await usersCollection.findOne({
-            $or: [{ 'accountData.email': email }, { 'accountData.userName': login }]
-        });
-
-        if (existingUser) {
-            res.status(400).send({ message: 'Email or login already exists' });
-            return;
-        }
-
-        next(); // Продолжаем выполнение следующего middleware или обработчика маршрута
-    } catch (error) {
-        console.error('Error checking uniqueness', error);
-        res.status(500).send({ message: 'Internal server error' });
-        return;
+export const uniqLoginValidator = body("login").custom(async (login) => {
+    const existingUser = await usersCollection.findOne({'accountData.userName': login})
+    if (existingUser) {
+        throw new Error("пользователь с таким login существует");
     }
-};
+    return true
+});
 
+export const userConfiemedValidor = body("email")
+    .matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage('Email is not Valid')
+    .custom(async (email) => {
+    const user = await usersCollection.findOne({'accountData.email': email})
+
+    if (!user) {
+        throw new Error("пользователя нет");
+    }
+    if(user.emailConfirmation.isConfirmed){
+        throw new Error("пользователь уже подтвержден");
+    }
+    return true
+});
+
+
+
+export const  registrationValidation = () =>[uniqEmailValidator, uniqLoginValidator,  inputValidationMiddleware]
+export const  emailResendingValidation = () =>[userConfiemedValidor, inputValidationMiddleware]

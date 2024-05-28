@@ -5,7 +5,13 @@ import {LoginUserType, UserAccountDBType} from "../types/users/inputUsersType";
 import { jwtService } from "../application/jwt-service";
 import { WithId } from "mongodb";
 import { CurrentUserType } from "../types/users/outputUserType";
-import {authMiddlewareBearer, checkUniqueEmailAndLogin} from "../middlewares/auth/auth-middleware";
+import {
+    authMiddlewareBearer,
+    emailResendingValidation,
+    registrationValidation,
+    uniqEmailValidator
+} from "../middlewares/auth/auth-middleware";
+import {inputValidationMiddleware} from "../middlewares/inputValidation/input-validation-middleware";
 
 
 
@@ -32,8 +38,9 @@ authRouter.get('/me', authMiddlewareBearer, async (req: Request, res: Response<C
 });
 
 
-authRouter.post('/registration', checkUniqueEmailAndLogin,  async (req: Request, res: Response) => {
-    //TODO перенести в auth service
+authRouter.post('/registration', registrationValidation(),  async (req: Request, res: Response) => {
+
+
     const result = await UsersService.createUnconfirmedUser(req.body.login, req.body.email, req.body.password);
     if(!result){
         res.sendStatus(500)
@@ -41,7 +48,7 @@ authRouter.post('/registration', checkUniqueEmailAndLogin,  async (req: Request,
     }
     res.sendStatus(204)
 });
-//TODO добавить валидацию на код и убрать ее из роута
+
 authRouter.post('/registration-confirmation',  async (req: Request, res: Response) => {
     const result = await UsersService.confirmEmail(req.body.code);
     if (!result) {
@@ -52,24 +59,9 @@ authRouter.post('/registration-confirmation',  async (req: Request, res: Respons
     return
 });
 
-authRouter.post('/registration-email-resending', async (req: Request, res: Response) => {
+authRouter.post('/registration-email-resending', emailResendingValidation(),  async (req: Request, res: Response) => {
     const email = req.body.email;
-
-    if (!email) {
-        return res.status(400).send({ message: 'Email is required' });
-    }
-
-    try {
-        await UsersService.resendConfirmationEmail(email);
-        res.status(204).send();
-    } catch (error) {
-        const err = error as any;
-        if (err.message === 'Invalid email or email already confirmed') {
-            res.status(400).send({ message: err.message });
-        } else {
-            console.error('Send email error', err);
-            res.status(500).send({ message: 'Could not resend confirmation email' });
-        }
-    }return
+    await UsersService.resendConfirmationEmail(email);
+        res.sendStatus(204)
 });
 

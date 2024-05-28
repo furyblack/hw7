@@ -1,18 +1,32 @@
 import {ValidationError, validationResult} from "express-validator";
 import {NextFunction, Response, Request} from "express";
 
-export const inputValidationMiddleware = (req: Request, res: Response, next: NextFunction) =>{
-    const formattedError = validationResult(req).formatWith((error: ValidationError) =>({
-        message: error.msg,
-        field: error.type == 'field' ? error.path: 'unknown'
-    }))
-    if(!formattedError.isEmpty()){
-        const errorMessages = formattedError.array({onlyFirstError: true})
+export const inputValidationMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    const errors = validationResult(req).formatWith(error => {
+        switch (error.type) {
+            case 'field' :
+                return {
+                    message: error.msg,
+                    field: error.path,
 
-        res.status(400).send({errorsMessages: errorMessages})
+                };
+            default:
+                return {
+                    message: error.msg,
+                    field: '-----'
+                }
+        }
 
-        return
+    });
 
+    if (!errors.isEmpty()) {
+        const err = errors.array({onlyFirstError: true});
+
+        return res.status(400).send({
+            errorsMessages: err
+        })
     }
-    return next()
-}
+
+    return next();
+};
+

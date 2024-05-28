@@ -10,7 +10,7 @@ export class UsersRepository{
     }
 
     static async findByLoginOrEmail(loginOrEmail: string): Promise<WithId<UserAccountDBType> | null> {
-        return usersCollection.findOne({ $or: [{ email: loginOrEmail }, { userName: loginOrEmail }] });
+        return usersCollection.findOne({ $or: [{ "accountData.email": loginOrEmail }, { "accountData.userName": loginOrEmail }] });
     }
     static async findUserByConfirmationCode(emailConfirmationCode: string) {
         return usersCollection.findOne({ "emailConfirmation.confirmationCode": emailConfirmationCode });
