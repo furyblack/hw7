@@ -1,7 +1,7 @@
 import {body} from "express-validator"
 import {inputValidationMiddleware} from "../middlewares/inputValidation/input-validation-middleware";
 
-                                                                                                        //[a-zA-Z0-9_-]*$
+
 const loginValidator = body('login').isString().withMessage('Login must be a string').trim().matches( '^[a-zA-Z0-9_-]*$'
 ).isLength({
     min: 3,
@@ -19,4 +19,3 @@ const emailValidator = body('email').isString().withMessage('Email must be a str
 export const userValidation = () =>[loginValidator, passwordValidator, emailValidator, inputValidationMiddleware]
 
 
-//[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$

@@ -9,12 +9,7 @@ import {
     authMiddlewareBearer,
     emailResendingValidation,
     registrationValidation,
-    uniqEmailValidator
 } from "../middlewares/auth/auth-middleware";
-import {inputValidationMiddleware} from "../middlewares/inputValidation/input-validation-middleware";
-
-
-
 
 export const authRouter = Router({});
 
@@ -37,9 +32,7 @@ authRouter.get('/me', authMiddlewareBearer, async (req: Request, res: Response<C
     });
 });
 
-
 authRouter.post('/registration', registrationValidation(),  async (req: Request, res: Response) => {
-
 
     const result = await UsersService.createUnconfirmedUser(req.body.login, req.body.email, req.body.password);
     if(!result){

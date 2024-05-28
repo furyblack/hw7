@@ -31,7 +31,6 @@ export class UserFactory {
         } = input
         const passwordSalt = await bcrypt.genSalt(10)
         const passwordHash = await this._generateHash(password, passwordSalt)
-
         const newUser: UserAccountDBType = {
             _id: new ObjectId(),
             accountData:{
@@ -44,14 +43,9 @@ export class UserFactory {
             emailConfirmation:{
                 confirmationCode,
                 expirationDate,
-                // expirationDate: add(new Date(),{
-                //     minutes:30
-                // }) ,
                 isConfirmed
             }
-
         }
-
         return newUser
     }
 

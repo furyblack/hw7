@@ -4,7 +4,7 @@ import { BlogMongoDbType} from "../types/blogs/output";
 
 import { PostMongoDbType} from "../types/posts/output";
 import {Collection, MongoClient} from "mongodb";
-import {UserAccountDBType, UserMongoDbType} from "../types/users/inputUsersType";
+import {UserAccountDBType} from "../types/users/inputUsersType";
 import {CommentMongoDbType} from "../types/comment/output-comment-type";
 
 //пытаюсь подключить бд

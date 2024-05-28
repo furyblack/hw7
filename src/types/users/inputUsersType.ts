@@ -23,11 +23,9 @@ export type EmailConfirmationType= {
     "expirationDate": Date | null
 }
 
-
 export type LoginUserType= {
     "loginOrEmail": string,
     "password": string,
-
 }
 
 export type UserMongoDbType =  {
