@@ -17,6 +17,3 @@ const emailValidator = body('email').isString().withMessage('Email must be a str
 ).withMessage('Incorrect websiteUrl')
 
 export const userValidation = () =>[loginValidator, passwordValidator, emailValidator, inputValidationMiddleware]
-
-
-//dfg

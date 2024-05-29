@@ -31,22 +31,21 @@ export class UserFactory {
         } = input
         const passwordSalt = await bcrypt.genSalt(10)
         const passwordHash = await this._generateHash(password, passwordSalt)
-        const newUser: UserAccountDBType = {
+        return {
             _id: new ObjectId(),
-            accountData:{
+            accountData: {
                 userName: login,
                 email,
                 passwordHash,
                 passwordSalt,
                 createdAt
             },
-            emailConfirmation:{
+            emailConfirmation: {
                 confirmationCode,
                 expirationDate,
                 isConfirmed
             }
         }
-        return newUser
     }
 
     public static async createConfirmedUser({login, password, email} : CreateNewUserType) {
